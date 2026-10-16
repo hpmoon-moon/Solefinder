@@ -1,0 +1,86 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#122033"><title>SoleFinder 足裏シーン検索</title><style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;color:#172336;background:#f4f7fa}*{box-sizing:border-box}body{margin:0}.wrap{max-width:760px;margin:auto;padding:18px 16px 60px}header{background:#122033;color:white;padding:24px 18px;border-radius:18px;margin:10px 0 18px}h1{font-size:25px;margin:0 0 6px}h2{font-size:18px;margin:0 0 12px}p{line-height:1.55}small,.muted{color:#637186}.panel{background:white;border:1px solid #e1e7ee;border-radius:15px;padding:17px;margin:13px 0;box-shadow:0 2px 7px #17233608}.pill{font-size:12px;background:#eaf2ff;color:#1c4f93;padding:4px 9px;border-radius:99px}label{font-weight:650;display:block;margin:12px 0 7px}input[type=file],select,input[type=number]{width:100%;padding:11px;border:1px solid #b9c5d2;border-radius:9px;background:white;font-size:16px}button{border:0;border-radius:10px;background:#1769b4;color:white;font-size:15px;font-weight:650;padding:12px 16px;cursor:pointer}button:disabled{opacity:.45}.secondary{background:#e9eef4;color:#1a324c}.buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.notice{background:#fff8e7;padding:12px;border-radius:10px;color:#76500d;font-size:13px}.good{background:#eaf8ef;color:#24623c}.result{padding:13px 0;border-bottom:1px solid #e3e8ed}.result:last-child{border:0}.time{font-variant-numeric:tabular-nums;font-weight:700}.meta{font-size:13px;color:#586779}progress{width:100%;height:16px;accent-color:#1769b4}video{width:100%;max-height:270px;background:#131b26;border-radius:9px}.switch{display:flex;gap:8px;align-items:center}.switch input{width:18px;height:18px}.switch label{margin:0;font-weight:500}.hidden{display:none}a{color:#1769b4}#status{font-size:13px;white-space:pre-wrap}.stat{font-variant-numeric:tabular-nums;font-weight:650}
+</style></head><body><main class="wrap"><header><h1>足裏シーン検索 <span style="font-size:13px">β3</span></h1><div>iPhone Safari対応・動画内の候補場面を端末上で探索</div></header>
+<section class="panel"><h2>1. 動画を選ぶ</h2><label for="source">動画の種類</label><select id="source"><option value="local">端末内の動画ファイル（AI検索対応）</option><option value="fanza">FANZA購入作品（視聴・時刻メモのみ）</option></select><div id="fanzaBox" class="hidden"><label for="fanzaUrl">購入作品のページURL（任意）</label><input id="fanzaUrl" type="url" placeholder="https://..." style="width:100%;padding:11px;border:1px solid #b9c5d2;border-radius:9px;font-size:16px"><div class="buttons"><button class="secondary" id="openFanza">FANZAの作品ページを開く</button></div><p class="notice">FANZAのブラウザ再生映像をこのアプリに取り込むことはできません。購入済み作品の視聴と時刻メモのみ対応します。DRMの解除・画面収録・映像の自動取得は行いません。</p><label for="manualStart">場面の開始時刻（例 00:12:34）</label><input id="manualStart" placeholder="00:00:00" style="width:100%;padding:11px;border:1px solid #b9c5d2;border-radius:9px;font-size:16px"><label for="manualEnd">終了時刻（例 00:12:40）</label><input id="manualEnd" placeholder="00:00:00" style="width:100%;padding:11px;border:1px solid #b9c5d2;border-radius:9px;font-size:16px"><div class="buttons"><button id="addManual">時刻を記録する</button></div></div><div id="localBox"><input type="file" id="file" accept="video/*"><p class="muted" style="font-size:13px">自分で撮影した動画など、解析する権利のある動画ファイルのみ。FANZAのブラウザ再生映像の取り込み・DRM回避は行いません。</p><video id="video" playsinline controls preload="metadata"></video><div id="duration" class="meta">動画未選択</div></div></section>
+<section class="panel"><h2>2. 検出条件</h2><label for="person">人物の条件</label><select id="person"><option value="both">男女どちらも（性別を推定しない）</option><option value="male">男性のみ（人物情報を手動で確認）</option><option value="female">女性のみ（人物情報を手動で確認）</option></select><p class="muted" style="font-size:12px">映像から性別は自動推定しません。未判定の人物は自動で男性・女性に振り分けません。</p><label for="soleMode">足裏の見え方</label><select id="soleMode"><option value="partial">足裏が少しでも映れば候補にする（見逃し抑制）</option><option value="clear" selected>足裏の大部分がはっきり映った場合のみ候補にする（厳しめ）</option></select><p class="muted" style="font-size:12px">選択によりAIへの判定文と抽出基準を変更します。足裏の可視面積を測定する専用モデルではないため、完全な判別は保証できません。</p><label for="interval">フレーム検査間隔</label><select id="interval"><option value="10">10秒ごと（高速・見逃しやすい）</option><option value="5">5秒ごと</option><option value="2" selected>2秒ごと（推奨）</option></select><label for="threshold">候補のスコア閾値</label><select id="threshold"><option value="0.48" selected>0.48（広めに抽出）</option><option value="0.58">0.58（標準）</option><option value="0.68">0.68（厳しめ）</option></select><div class="notice good">β2：粗い検索で見つけた候補の周辺だけを0.5秒間隔で再解析し、開始・終了を細かく推定します。候補がない区間は再解析しないため、見逃しの可能性は残ります。</div><div class="notice">画像と言葉の類似度から「足裏が大きく見える候補」を探す試験的AIです。足裏専用の学習済み検出器ではありません。誤検出や見逃しがあり、結果は人の確認が必要です。開始・終了時刻は推定値です。0.5秒間隔の再解析は候補付近のみ実施します。</div><div class="buttons"><button id="start">AIモデルを読み込み検索開始</button><button id="stop" class="secondary" disabled>停止</button></div><p id="status">待機中。初回はAIモデルのダウンロードにネット接続が必要です。</p><progress id="progress" value="0" max="100"></progress><div class="meta" id="counter">0 / 0 フレーム</div></section>
+<section class="panel"><h2>3. 検出候補 <span id="count" class="pill">0件</span></h2><p class="muted" style="font-size:13px">候補の時刻をタップすると元動画へ移動します。候補を確認して「確定」を選んでください。候補のない場面も見落とす場合があります。</p><div id="results"><p class="muted">まだ候補がありません。</p></div><div class="buttons"><button class="secondary" id="csv">確定結果をCSV出力</button><button class="secondary" id="json">結果をJSON保存</button><button class="secondary" id="clear">結果を消去</button></div></section>
+<section class="panel"><h2>制約とプライバシー</h2><p style="font-size:13px">動画本体はこのアプリのサーバーにアップロードしません。AIモデルは初回に配布元から取得します。iPhoneではメモリ不足や省電力制御で2時間動画の処理が中断する場合があります。長時間動画は短く分けて試してください。アプリ画面を閉じると処理が停止します。</p><p class="muted" style="font-size:12px">このアプリは試作版です。人物属性の識別や、足裏が「大部分はっきり映った」とする確定判定を自動保証しません。</p></section>
+</main><script type="module">
+const $=id=>document.getElementById(id);let videoURL=null, classifier=null, cancelled=false, candidates=[], duration=0;
+const modePrompts={clear:['A close clear view of the bare soles of human feet, with most of the bottoms of the feet visible.','A photo of the tops of bare feet, not the soles.','A photo of feet wearing socks or shoes.','A scene of people with no clearly visible bare foot soles.'],partial:['A photograph showing any visible portion of the bare underside or sole of a human foot, even if only part of it is visible.','A photo of the tops of bare feet, not the soles.','A photo of feet wearing socks or shoes.','A scene with no visible bare foot soles.']};
+const fmt=t=>{t=Math.max(0,Math.floor(t||0));return `${String(Math.floor(t/3600)).padStart(2,'0')}:${String(Math.floor(t%3600/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`};
+$('file').onchange=()=>{const f=$('file').files[0];if(!f)return;if(videoURL)URL.revokeObjectURL(videoURL);videoURL=URL.createObjectURL(f);$('video').src=videoURL;candidates=[];render();$('duration').textContent=`${f.name} (${(f.size/1048576).toFixed(1)} MB)`};
+$('video').onloadedmetadata=()=>{duration=$('video').duration;$('duration').textContent+=` / ${fmt(duration)}`};
+const seek=t=>new Promise((resolve,reject)=>{let v=$('video');let timer=setTimeout(()=>{v.removeEventListener('seeked',done);reject(new Error('動画の指定位置を読み込めません'))},12000);function done(){clearTimeout(timer);resolve()}v.addEventListener('seeked',done,{once:true});v.currentTime=Math.min(Math.max(0,t),Math.max(0,duration-0.05));});
+const fineStep=0.5; const canvas=document.createElement('canvas');canvas.width=224;canvas.height=224;const ctx=canvas.getContext('2d',{willReadFrequently:true});
+function render(){let root=$('results');$('count').textContent=`${candidates.length}件`;if(!candidates.length){root.innerHTML='<p class="muted">まだ候補がありません。</p>';return}root.replaceChildren();candidates.forEach((c,i)=>{let d=document.createElement('div');d.className='result';let checked=c.ok?'確定済み':'未確認';d.innerHTML=`<div class="time">${fmt(c.start)} 〜 ${fmt(c.end)}</div><div class="meta">${c.manual?"手動記録":"類似度スコア "+c.score.toFixed(3)} / ${checked}</div>`;let row=document.createElement('div');row.className='buttons';let jump=document.createElement('button');jump.className='secondary';jump.textContent='この時刻を再生';jump.disabled=!!c.manual;jump.onclick=async()=>{if(c.manual)return;await seek(c.start);$('video').play().catch(()=>{});$('video').scrollIntoView({behavior:'smooth'})};let ok=document.createElement('button');ok.textContent=c.ok?'確定を取り消す':'足裏と確認・確定';ok.onclick=()=>{c.ok=!c.ok;render()};let del=document.createElement('button');del.className='secondary';del.textContent='除外';del.onclick=()=>{candidates.splice(i,1);render()};row.append(jump,ok,del);d.append(row);root.append(d)})}
+$('stop').onclick=()=>{cancelled=true;$('status').textContent='停止を要求しました。現在のフレーム処理が終わるまでお待ちください。'};
+async function classifyAt(t){
+  await seek(t);
+  ctx.fillStyle='#000';ctx.fillRect(0,0,224,224);
+  let v=$('video');if(!v.videoWidth||!v.videoHeight)throw new Error('映像フレームを読み込めません');
+  ctx.drawImage(v,0,0,v.videoWidth,v.videoHeight,0,0,224,224);
+  let prompts=modePrompts[$('soleMode').value];
+  let out=await classifier(canvas.toDataURL('image/jpeg',0.8),prompts,{hypothesis_template:'{}'});
+  return out.find(x=>x.label===prompts[0])?.score??0;
+}
+$('source').onchange=()=>{let isFanza=$('source').value==='fanza';$('fanzaBox').classList.toggle('hidden',!isFanza);$('localBox').classList.toggle('hidden',isFanza);$('start').disabled=isFanza;$('interval').disabled=isFanza;$('threshold').disabled=isFanza};
+$('openFanza').onclick=()=>{let url=$('fanzaUrl').value.trim();try{let u=new URL(url);if(u.protocol!=='https:'||!(u.hostname==='dmm.co.jp'||u.hostname.endsWith('.dmm.co.jp')||u.hostname==='dmm.com'||u.hostname.endsWith('.dmm.com')))throw Error();window.open(u.href,'_blank','noopener,noreferrer')}catch{alert('DMM/FANZAの正しいHTTPS作品ページURLを入力してください')}};
+function parseClock(s){let p=s.trim().split(':').map(Number);if(p.length<2||p.length>3||p.some(x=>!Number.isInteger(x)||x<0)||p.slice(1).some(x=>x>=60))return NaN;return p.reduce((a,v)=>a*60+v,0)}
+$('addManual').onclick=()=>{let start=parseClock($('manualStart').value),end=parseClock($('manualEnd').value);if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start){alert('開始・終了時刻を HH:MM:SS 形式で入力してください');return}candidates.push({start,end,score:0,ok:true,manual:true,mode:$('soleMode').value});candidates.sort((a,b)=>a.start-b.start);render()};
+$('start').onclick=async()=>{if($('source').value==='fanza'){alert('FANZAブラウザ再生映像の自動解析には対応していません');return}
+ if(!$('file').files.length){alert('動画ファイルを選んでください');return}
+ if(!Number.isFinite(duration)||duration<=0){alert('動画の長さを取得できません');return}
+ cancelled=false;$('start').disabled=true;$('stop').disabled=false;candidates=[];render();
+ const step=Number($('interval').value),threshold=Number($('threshold').value),total=Math.ceil(duration/step);
+ $('progress').value=0;$('counter').textContent=`0 / ${total} フレーム`;
+ try{
+  if(!classifier){$('status').textContent='AIモデルをダウンロード・初期化中…';const {pipeline,env}=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1');env.allowLocalModels=false;classifier=await pipeline('zero-shot-image-classification','Xenova/clip-vit-base-patch32',{device:'wasm'});}
+  let hits=[];
+  for(let i=0;i<total;i++){
+   if(cancelled)break;
+   let t=Math.min(i*step+Math.min(step/2,1),duration-0.1);
+   let score=await classifyAt(t);
+   if(score>=threshold)hits.push({time:t,score});
+   $('progress').value=(i+1)/total*70;
+   $('counter').textContent=`一次検索 ${i+1} / ${total} フレーム`;
+   if(i%3===0)$('status').textContent=`一次検索 ${fmt(t)} / ${fmt(duration)} ・候補 ${hits.length}`;
+   await new Promise(r=>setTimeout(r,0));
+  }
+  // Merge coarse hits into candidate windows. Only refine near positive coarse hits.
+  let groups=[];
+  for(let h of hits){let last=groups.at(-1);if(last&&h.time-last.last<=step*2.1){last.last=h.time;last.score=Math.max(last.score,h.score)}else groups.push({first:h.time,last:h.time,score:h.score})}
+  if(cancelled){candidates=groups.map(g=>({mode:$('soleMode').value,start:Math.max(0,g.first-step/2),end:Math.min(duration,g.last+step/2),score:g.score,ok:false}));render();$('status').textContent='途中停止しました。一次検索の候補だけを表示しています。';return;}
+  let refined=[];
+  for(let gi=0;gi<groups.length;gi++){
+   if(cancelled)break;
+   const g=groups[gi],from=Math.max(0,g.first-step*1.5),to=Math.min(duration,g.last+step*1.5);
+   let fineHits=[];
+   for(let t=from;t<=to+0.001;t+=fineStep){
+    if(cancelled)break;
+    const at=Math.min(t,Math.max(0,duration-0.1)),score=await classifyAt(at);
+    if(score>=threshold)fineHits.push({time:at,score});
+    $('status').textContent=`二次検索 ${gi+1}/${groups.length} 候補 ・${fmt(at)} / ${fmt(duration)}`;
+    await new Promise(r=>setTimeout(r,0));
+   }
+   // Split distinct runs; tolerate one missing sample.
+   let runs=[];
+   for(let h of fineHits){let last=runs.at(-1);if(last&&h.time-last.last<=fineStep*2.01){last.last=h.time;last.score=Math.max(last.score,h.score)}else runs.push({first:h.time,last:h.time,score:h.score})}
+   for(let r of runs)refined.push({start:Math.max(0,r.first-fineStep/2),end:Math.min(duration,r.last+fineStep/2),score:r.score,ok:false});
+   $('progress').value=70+(gi+1)/Math.max(1,groups.length)*30;
+  }
+  // Combine overlapping refined windows.
+  refined.sort((a,b)=>a.start-b.start);
+  candidates=[];
+  for(let c of refined){c.mode=$('soleMode').value;let last=candidates.at(-1);if(last&&c.start<=last.end+0.001){last.end=Math.max(last.end,c.end);last.score=Math.max(last.score,c.score)}else candidates.push(c)}
+  render();$('progress').value=cancelled?$('progress').value:100;
+  $('counter').textContent=`一次検索 ${total} フレーム / 二次検索 ${groups.length} 箇所`;
+  $('status').textContent=cancelled?`途中停止。候補 ${candidates.length} 件（未完了）`:`二段階検索終了。候補 ${candidates.length} 件。時刻は推定値です。動画で確認してください。`;
+ }catch(e){$('status').textContent=`エラー: ${e.message}。動画形式やメモリ、モデルの読み込みを確認してください。`;console.error(e)}
+ finally{$('start').disabled=false;$('stop').disabled=true}
+};
+function save(name,content,type){const url=URL.createObjectURL(new Blob([content],{type}));let a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),5000)}
+$('csv').onclick=()=>{let data=candidates.filter(c=>c.ok);let csv='開始時刻,終了時刻,検出条件,スコア,人物条件,確認状態\r\n'+data.map(c=>[fmt(c.start),fmt(c.end),c.mode==='partial'?'足裏が少しでも映る':'足裏の大部分が明瞭',c.manual?'手動':c.score.toFixed(3),$('person').selectedOptions[0].textContent,'手動確認済み'].join(',')).join('\r\n');save('sole_scenes.csv','\ufeff'+csv,'text/csv;charset=utf-8')};
+$('json').onclick=()=>save('sole_scenes.json',JSON.stringify({video:$('file').files[0]?.name,person:$('person').value,source:$('source').value,soleMode:$('soleMode').value,results:candidates},null,2),'application/json');
+$('clear').onclick=()=>{if(confirm('候補結果を消去しますか？')){candidates=[];render()}};
+</script></body></html>
